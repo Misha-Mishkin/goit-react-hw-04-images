@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import ImageGallery from './ImageGallery';
 import Searchbar from './Searchbar';
 import Loader from './Loader';
@@ -16,11 +16,8 @@ export function App() {
   const [totalHits, setTotalHits] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const isFirstRender = useRef(true);
-
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
+    if (!searchQuery) {
       return;
     }
 
@@ -52,7 +49,7 @@ export function App() {
   };
 
   const onLoadMoreButton = () => {
-    setPage(prevState => prevState.page + 1);
+    setPage(prevPage => prevPage + 1);
   };
 
   const totalPages = totalHits / 12;
