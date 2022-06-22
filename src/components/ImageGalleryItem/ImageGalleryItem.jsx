@@ -14,7 +14,7 @@ export default function ImageGalleryItem({
         className={s.ImageGalleryItem_image}
         src={webformatURL}
         alt={tags}
-        onClick={() => showModal({ largeImageURL, tags })}
+        onClick={() => showModal(largeImageURL, tags)}
       />
     </li>
   );

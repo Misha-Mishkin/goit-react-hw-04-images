@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import ImageGallery from './ImageGallery';
 import Searchbar from './Searchbar';
 import Loader from './Loader';
@@ -8,70 +8,64 @@ import s from './App.module.css';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-export class App extends Component {
-  state = {
-    searchQuery: '',
-    gallery: [],
-    error: null,
-    page: 1,
-    status: 'idle',
-    totalHits: null,
-    loading: false,
-  };
+export function App() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [gallery, setGallery] = useState([]);
+  const [page, setPage] = useState(1);
+  const [status, setStatus] = useState('idle');
+  const [totalHits, setTotalHits] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  componentDidUpdate(prevProps, prevState) {
-    if (
-      prevState.searchQuery !== this.state.searchQuery ||
-      prevState.page !== this.state.page
-    ) {
-      this.setState({ status: 'pending', loading: true });
+  const isFirstRender = useRef(true);
 
-      fetchPicture(this.state.searchQuery, this.state.page)
-        .then(data => {
-          if (data.totalHits === 0) {
-            toast.error(`"${this.state.searchQuery}" not found!`);
-            this.setState({
-              error: `"${this.state.searchQuery}" not found!`,
-              status: 'rejected',
-            });
-          } else {
-            this.setState(prevState => ({
-              gallery: [...prevState.gallery, ...data.hits],
-              totalHits: data.totalHits,
-              error: null,
-              status: 'resolved',
-            }));
-          }
-        })
-        .catch(error => this.setState({ error, status: 'rejected' }))
-        .finally(() => {
-          this.setState({ loading: false });
-        });
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
     }
-  }
 
-  handleFormSubmit = searchQuery => {
-    this.setState({ searchQuery: searchQuery, gallery: [], page: 1 });
+    setLoading(true);
+    setStatus('pending');
+
+    fetchPicture(searchQuery, page)
+      .then(data => {
+        if (data.totalHits === 0) {
+          toast.error(`"${searchQuery}" not found!`);
+          setStatus('rejected');
+        } else {
+          setGallery(gallery => [...gallery, ...data.hits]);
+          setTotalHits(data.totalHits);
+          setStatus('resolved');
+        }
+      })
+      .catch(error => {
+        toast.error(error.message);
+        setStatus('rejected');
+      })
+      .finally(setLoading(false));
+  }, [searchQuery, page]);
+
+  const handleFormSubmit = searchQuery => {
+    setSearchQuery(searchQuery);
+    setGallery([]);
+    setPage(1);
   };
 
-  onLoadMoreButton = () => {
-    this.setState(prevState => ({ page: prevState.page + 1 }));
+  const onLoadMoreButton = () => {
+    setPage(prevState => prevState.page + 1);
   };
 
-  render() {
-    const { gallery, loading, totalHits, page, status } = this.state;
-    const totalPages = totalHits / 12;
+  const totalPages = totalHits / 12;
 
-    return (
-      <div className={s.App}>
-        <Searchbar onSubmit={this.handleFormSubmit} />
-        {gallery && <ImageGallery images={gallery} />}
-        {loading && <Loader />}
-        {status === 'resolved' && totalPages > page && (
-          <Button text="Load more" handleClick={this.onLoadMoreButton} />
-        )}
-        <ToastContainer position="top-center" autoClose={3000} />
-      </div>
-    );
-  }
+  return (
+    <div className={s.App}>
+      <Searchbar onSubmit={handleFormSubmit} />
+      {gallery && <ImageGallery images={gallery} />}
+      {loading && <Loader />}
+      {status === 'resolved' && totalPages > page && (
+        <Button text="Load more" handleClick={onLoadMoreButton} />
+      )}
+      <ToastContainer position="top-center" autoClose={3000} />
+    </div>
+  );
 }
