@@ -14,14 +14,12 @@ export function App() {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState('idle');
   const [totalHits, setTotalHits] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!searchQuery) {
       return;
     }
 
-    setLoading(true);
     setStatus('pending');
 
     fetchPicture(searchQuery, page)
@@ -38,8 +36,7 @@ export function App() {
       .catch(error => {
         toast.error(error.message);
         setStatus('rejected');
-      })
-      .finally(setLoading(false));
+      });
   }, [searchQuery, page]);
 
   const handleFormSubmit = searchQuery => {
@@ -58,7 +55,7 @@ export function App() {
     <div className={s.App}>
       <Searchbar onSubmit={handleFormSubmit} />
       {gallery && <ImageGallery images={gallery} />}
-      {loading && <Loader />}
+      {status === 'pending' && <Loader />}
       {status === 'resolved' && totalPages > page && (
         <Button text="Load more" handleClick={onLoadMoreButton} />
       )}
