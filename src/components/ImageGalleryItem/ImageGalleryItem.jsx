@@ -2,14 +2,13 @@ import s from './ImageGalleryItem.module.css';
 import PropTypes from 'prop-types';
 
 export default function ImageGalleryItem({
-  id,
   webformatURL,
   tags,
   showModal,
   largeImageURL,
 }) {
   return (
-    <li className={s.ImageGalleryItem} key={id}>
+    <li className={s.ImageGalleryItem}>
       <img
         className={s.ImageGalleryItem_image}
         src={webformatURL}
